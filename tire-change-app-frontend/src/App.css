@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand&display=swap');
+
+* {
+  box-sizing: border-box;
+  font-family: 'Quicksand', Arial, Helvetica, sans-serif;
+  /* overflow: hidden; */
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-image: linear-gradient(
+    to bottom,
+    #0d1944,
+    #0e214d,
+    #0f2956,
+    #10325f,
+    #113a68,
+    #133d68,
+    #163f68,
+    #1a4268,
+    #1e3f5f,
+    #213b56,
+    #23384d,
+    #253444
+  );
+  color: white;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+}
+
+.err {
+  font-size: 14px;
+  letter-spacing: -0.05em;
+}
+
+.calendar a {
+  cursor: pointer;
+}
