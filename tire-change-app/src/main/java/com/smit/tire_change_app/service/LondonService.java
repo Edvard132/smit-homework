@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.smit.tire_change_app.client.LondonClient;
 import com.smit.tire_change_app.exceptions.InvalidDatePeriodException;
-import com.smit.tire_change_app.model.AvailableTime;
 import com.smit.tire_change_app.model.Booking;
 import com.smit.tire_change_app.model.ContactInformation;
 import com.smit.tire_change_app.responses.LondonResponse;
 import com.smit.tire_change_app.workshop.AvailTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBContext;
@@ -22,10 +22,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LondonService implements WorkshopService<String> {
     private final LondonClient londonClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -33,10 +33,10 @@ public class LondonService implements WorkshopService<String> {
     @Override
     public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException {
         String availableTimesList = londonClient.getAvailableTimes(from, until);
-        return helper(availableTimesList);
+        return filterFutureEvents(availableTimesList);
     }
 
-    private List<AvailTime> helper(String availableTimeList) throws JAXBException {
+    private List<AvailTime> filterFutureEvents(String availableTimeList) throws JAXBException {
         JAXBContext jaxbContext = JAXBContext.newInstance(LondonResponse.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
@@ -67,8 +67,10 @@ public class LondonService implements WorkshopService<String> {
 
             XmlMapper xmlMapper = new XmlMapper();
             String xml = xmlMapper.writeValueAsString(contactInformation1);
-
-            return londonClient.bookTireChangeTime(uuid, xml);
+            Booking booking = londonClient.bookTireChangeTime(uuid, xml);
+            booking.setAddress("1A Gunton Rd, London");
+            booking.setVehicleType("Car");
+            return booking;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

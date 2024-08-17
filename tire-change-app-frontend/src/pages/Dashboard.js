@@ -30,10 +30,10 @@ const Dashboard = () => {
       const data = await response.data;
       console.log(data)
       const formattedEvents = data.map((item) => ({
-        ...item,
         id: item.uuid !== null ? item.uuid : item.id,
-        title: 'Car',
+        title: item.vehicleType,
         start: item.time,
+        address: item.address,
         backgroundColor: 'black'
       }));
 

@@ -26,38 +26,23 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
     setModalShow(false);
   };
 
-  const bookServiceLondon = async () => {
+  const bookServiceCity = async (workshopId, id) => {
     setIsLoading(true);
-
+    console.log('workshopId ', workshopId, ' id ', id);
     try {
-      const response = await api.put(`api/v1/london/bookTime/${event?._def.extendedProps.uuid}`, {
-        contactInformation: contactInformation,
-      });
+      let response;
+      if (workshopId === 1) {
+        response = await api.put(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
+          contactInformation: contactInformation,
+        });
+      } else if (workshopId === 2) {
+        response = await api.post(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
+          contactInformation: contactInformation,
+        });
+      }
       const data = await response.data;
-      console.log('DATA FROM london', data);
+      console.log('DATA FROM booking', data);
 
-      setResponse({
-        time: getReadableDate(data.time),
-        address: data.address,
-        vehicleType: data.vehicleType,
-      });
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const bookServiceManchester = async () => {
-    setIsLoading(true);
-
-    try {
-      const response = await api.post(`api/v2/manchester/bookTime/${event?._def.publicId}`, {
-        contactInformation: contactInformation,
-      });
-
-      const data = await response.data;
-      console.log('DATA FROM MANCHESTER', data);
       setResponse({
         time: getReadableDate(data.time),
         address: data.address,
@@ -76,13 +61,13 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
       return;
     }
     try {
-      if (event._def.extendedProps.uuid !== undefined) {
-        await bookServiceLondon();
+      if (event._def.title === 'Car') {
+        await bookServiceCity(1, event._def.publicId);
       } else {
-        await bookServiceManchester();
+        await bookServiceCity(2, event._def.publicId);
       }
     } catch (err) {
-      console.log(err);
+      console.log('errur', err);
     } finally {
       await getAllAvailableTimes();
     }
@@ -118,7 +103,7 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
             <div className='ms-2'>
               <p className='m-0'>
                 <span className='text-muted'>Service time:</span>{' '}
-                <span className='fw-bold'>{getReadableDate(event?._def.extendedProps.time)}</span>
+                <span className='fw-bold'>{getReadableDate(event?._instance.range.start)}</span>
               </p>
               <p className='m-0'>
                 <span className='text-muted'>Vehicle type:</span> <span className='fw-bold'>{event?.title}</span>
@@ -148,7 +133,7 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
         )}
       </Modal.Body>
       <Modal.Footer className='border-0 justify-content-between pt-0 mx-2'>
-        <div className=''>
+        <div className='mt-0'>
           <Button onClick={onCloseModal} variant='dark'>
             Close
           </Button>

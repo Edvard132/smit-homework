@@ -10,9 +10,7 @@ import javax.xml.bind.JAXBException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,16 +22,18 @@ public class ManchesterService implements WorkshopService<Integer> {
     public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException {
         List<AvailTime> availableTimes = manchesterClient.getAvailableTimes(from);
 
-        return helper(availableTimes, from, until);
+        return filterFutureEvents(availableTimes, from, until);
     }
-
 
     @Override
     public Booking bookTireChangeTime(Integer id, String contactInformation) {
-        return manchesterClient.bookTireChangeTime(id, contactInformation);
+        Booking booking =  manchesterClient.bookTireChangeTime(id, contactInformation);
+        booking.setAddress("14 Bury New Rd, Manchester");
+        booking.setVehicleType("Car/Truck");
+        return booking;
     }
 
-    public List<AvailTime> helper(List<AvailTime> availableTimes, String from, String until) {
+    public List<AvailTime> filterFutureEvents(List<AvailTime> availableTimes, String from, String until) {
 
         ZonedDateTime now = ZonedDateTime.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -62,6 +62,4 @@ public class ManchesterService implements WorkshopService<Integer> {
                 })
                 .toList();
     }
-
-
 }

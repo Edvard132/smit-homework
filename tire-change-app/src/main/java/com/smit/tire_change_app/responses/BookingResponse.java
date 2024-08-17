@@ -1,14 +1,13 @@
-package com.smit.tire_change_app.model;
+package com.smit.tire_change_app.responses;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.stereotype.Component;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class Booking {
-
+@Component
+public class BookingResponse {
     private String uuid;
     private Integer id;
     private String time;

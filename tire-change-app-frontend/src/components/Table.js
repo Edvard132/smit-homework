@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -10,10 +10,10 @@ const TableComponent = ({ events, getAllAvailableTimes }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const eventClickAction = (info) => {
+    console.log('INFO', info);
     setSelectedEvent(info.event);
     setModalShow(true);
   };
-
 
   return (
     <div className='calendar'>

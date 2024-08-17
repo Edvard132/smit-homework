@@ -1,6 +1,7 @@
 package com.smit.tire_change_app.controller;
 
 import com.smit.tire_change_app.model.Booking;
+import com.smit.tire_change_app.responses.BookingResponse;
 import com.smit.tire_change_app.workshop.AvailTime;
 import com.smit.tire_change_app.service.WorkshopService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +22,12 @@ public class WorkshopController {
 
     private final Map<Integer, WorkshopService> workshopServices;
 
+    private final BookingResponse bookingResponse;
+
     @Autowired
-    public WorkshopController(Map<Integer, WorkshopService> workshopServices) {
+    public WorkshopController(Map<Integer, WorkshopService> workshopServices, BookingResponse bookingResponse) {
         this.workshopServices = workshopServices;
-        for (Map.Entry<Integer, WorkshopService> entry : workshopServices.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue().getClass().getSimpleName());
-        }
+        this.bookingResponse = bookingResponse;
     }
 
     @GetMapping("/{workshopId}/availableTimes")
@@ -54,23 +55,24 @@ public class WorkshopController {
     }
 
     @PutMapping("/{workshopId}/bookTime/{uuid}")
-    public ResponseEntity<Booking> bookTireChangeTime(@PathVariable Integer workshopId, @PathVariable String uuid, @RequestBody String contactInformation) {
+    public ResponseEntity<BookingResponse> bookTireChangeTime(@PathVariable Integer workshopId, @PathVariable String uuid, @RequestBody String contactInformation) {
         WorkshopService<String> workshopService = workshopServices.get(workshopId);
-        Booking booking = workshopService.bookTireChangeTime(uuid, contactInformation);
-        //        try {
-//            Booking booking = londonService.bookTireChangeTime(uuid, contactInformation);
-//            bookingResponse.setUuid(booking.getUuid());
-//            bookingResponse.setTime(booking.getTime());
-//            bookingResponse.setErrorMessage(null);
-//
-//            return ResponseEntity.ok(bookingResponse);
-//        } catch (Exception e){
-//            bookingResponse.setUuid(null);
-//            bookingResponse.setTime(null);
-//            bookingResponse.setErrorMessage(e.getMessage());
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(bookingResponse);
-//        }
-        return ResponseEntity.ok(booking);
+
+        try {
+            Booking booking = workshopService.bookTireChangeTime(uuid, contactInformation);
+            bookingResponse.setUuid(booking.getUuid());
+            bookingResponse.setTime(booking.getTime());
+            bookingResponse.setVehicleType(booking.getVehicleType());
+            bookingResponse.setAddress(booking.getAddress());
+            bookingResponse.setErrorMessage(null);
+
+            return ResponseEntity.ok(bookingResponse);
+        } catch (Exception e){
+            bookingResponse.setUuid(null);
+            bookingResponse.setTime(null);
+            bookingResponse.setErrorMessage(e.getMessage());
+            return ResponseEntity.badRequest().body(bookingResponse);
+        }
     }
 
     @PostMapping(value = "/{workshopId}/bookTime/{tireChangeTimeId}")
@@ -79,9 +81,6 @@ public class WorkshopController {
         if (workshopService == null) {
             return ResponseEntity.notFound().build();
         }
-        System.out.println("here " + tireChangeTimeId);
-        log.info("heeeeeere " + tireChangeTimeId);
-        System.out.println("here " + tireChangeTimeId.getClass());
         Booking booking = workshopService.bookTireChangeTime(tireChangeTimeId, contactInformation);
         return ResponseEntity.ok(booking);
     }
