@@ -2,20 +2,19 @@ import React from 'react';
 import Row from 'react-bootstrap/Row';
 import { formatDate } from '../utils/date';
 
-const Filter = ({ filters, setFilters, errMessage, setErrMessage }) => {
+const Filter = ({ filters, setFilters, errMessage, setErrMessage, dateFilters, setDateFilters }) => {
   const onWorkshopChange = (event) => {
     let filter = event.target.value;
     let updatedFilters = { ...filters };
-    console.log(updatedFilters);
     if (updatedFilters.workshop.includes(filter)) {
-      console.log(filter);
-
       updatedFilters.workshop = updatedFilters.workshop.filter((item) => item !== filter);
     } else {
       updatedFilters.workshop.push(filter);
     }
     if (updatedFilters.workshop.length !== 0) {
       setErrMessage('');
+    } else {
+      setErrMessage('Select at least one workshop');
     }
     setFilters(updatedFilters);
   };
@@ -38,22 +37,27 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage }) => {
   };
 
   const handleDateChange = (e) => {
-    let untilDate;
+    const { id, value } = e.target;
+    let updatedFilters = { ...dateFilters };
 
-    if (e.target.value !== undefined) {
-      const selectedDate = e.target.value;
-      if (selectedDate < filters.date.from) {
-        setErrMessage('Date cannot be before from date');
+    if (id === 'from') {
+      if (value > dateFilters.until) {
+        setErrMessage('"From" date cannot be after "Until" date');
+        updatedFilters.from = value;
+      } else {
+        setErrMessage('');
+        updatedFilters.from = value;
       }
-      console.log('Selected', selectedDate);
-      const today = formatDate(new Date());
-
-      untilDate = selectedDate > today ? selectedDate : today;
-    } else {
-      untilDate = getDateWeekAhead();
+    } else if (id === 'until') {
+      if (value < dateFilters.from) {
+        setErrMessage('"Until" date cannot be before "From" date');
+        updatedFilters.until = value;
+      } else {
+        setErrMessage('');
+        updatedFilters.until = value;
+      }
     }
-
-    console.log(filters);
+    setDateFilters(updatedFilters);
   };
 
   return (
@@ -69,8 +73,8 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage }) => {
                 type='checkbox'
                 id='london'
                 onChange={onWorkshopChange}
-                value={'london'}
-                checked={filters.workshop.includes('london')}
+                value={'1A Gunton Rd, London'}
+                checked={filters.workshop.includes('1A Gunton Rd, London')}
                 className='ms-3 me-1'
               />
               <label htmlFor='london'>London</label>
@@ -79,9 +83,9 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage }) => {
               <input
                 type='checkbox'
                 id='manchester'
-                value={'manchester'}
+                value={'14 Bury New Rd, Manchester'}
                 onChange={onWorkshopChange}
-                checked={filters.workshop.includes('manchester')}
+                checked={filters.workshop.includes('14 Bury New Rd, Manchester')}
                 className='ms-3 me-1'
               />
               <label htmlFor='manchester' className=''>
@@ -98,24 +102,24 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage }) => {
             <div className='d-flex alig-items-center'>
               <input
                 type='checkbox'
-                id='car'
+                id='Car'
                 onChange={onVehicleTypeChange}
-                value={'car'}
-                checked={filters.vehicleType.includes('car')}
+                value={'Car'}
+                checked={filters.vehicleType.includes('Car')}
                 className='ms-3 me-1'
               />
-              <label htmlFor='car'>Car</label>
+              <label htmlFor='Car'>Car</label>
             </div>
             <div className='d-flex alig-items-center'>
               <input
                 type='checkbox'
-                id='truck'
-                value={'truck'}
+                id='Car/Truck'
+                value={'Car/Truck'}
                 onChange={onVehicleTypeChange}
-                checked={filters.vehicleType.includes('truck')}
+                checked={filters.vehicleType.includes('Car/Truck')}
                 className='ms-3 me-1'
               />
-              <label htmlFor='truck' className=''>
+              <label htmlFor='Car/Truck' className=''>
                 Truck
               </label>
             </div>
@@ -130,39 +134,13 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage }) => {
               <label htmlFor='from' className='ms-3 pe-3 pe-xxl-1'>
                 From
               </label>
-              <input
-                type='date'
-                id='from'
-                value={filters.date.from}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    date: {
-                      ...filters.date,
-                      from: e.target.value !== undefined ? e.target.value : formatDate(new Date()),
-                    },
-                  })
-                }
-              />
+              <input type='date' id='from' value={dateFilters.from} onChange={handleDateChange} />
             </div>
             <div className='d-flex alig-items-center'>
               <label htmlFor='until' className='ms-3 pe-3 pe-xxl-1'>
                 Until
               </label>
-              <input
-                type='date'
-                id='until'
-                value={filters.date.until}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    date: {
-                      ...filters.date,
-                      until: handleDateChange(e),
-                    },
-                  })
-                }
-              />
+              <input type='date' id='until' value={dateFilters.until} onChange={handleDateChange} />
             </div>
           </div>
         </div>
