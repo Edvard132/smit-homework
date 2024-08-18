@@ -35,19 +35,17 @@ const Dashboard = () => {
       );
 
       const data = await response.data;
-      const formattedEvents = data.availTimeList.map((item) => ({
+      const formattedEvents = data.availableTimeList.map((item) => ({
         id: item.uuid !== null ? item.uuid : item.id,
         title: item.vehicleType,
         start: item.time,
         address: item.address,
         backgroundColor: item.vehicleType === 'Car' ? '#0d1944' : '#0c141c',
       }));
-      console.log(formattedEvents);
 
       setEvents(formattedEvents);
       filterEvents();
     } catch (err) {
-      console.log(err)
       setErrMessage(err.response.data.errorMessage);
     } finally {
       setIsLoading(false);

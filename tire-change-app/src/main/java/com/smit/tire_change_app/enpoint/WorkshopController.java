@@ -67,39 +67,30 @@ public class WorkshopController {
         try {
             Booking booking = workshopServiceAggregator.bookTireChangeTime(workshopId,tireChangeTimeId, contactInformation);
 
-            bookingResponse.setUuid(booking.getUuid());
             bookingResponse.setTime(booking.getTime());
             bookingResponse.setVehicleType(booking.getVehicleType());
             bookingResponse.setAddress(booking.getAddress());
             bookingResponse.setErrorMessage(null);
             return ResponseEntity.ok(bookingResponse);
         } catch (NotAvailableTimeException e){
-            bookingResponse.setId(null);
-            bookingResponse.setUuid(null);
             bookingResponse.setTime(null);
             bookingResponse.setAddress(null);
             bookingResponse.setVehicleType(null);
             bookingResponse.setErrorMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(bookingResponse);
         } catch (InvalidWorkshopIdException e) {
-            bookingResponse.setId(null);
-            bookingResponse.setUuid(null);
             bookingResponse.setTime(null);
             bookingResponse.setAddress(null);
             bookingResponse.setVehicleType(null);
             bookingResponse.setErrorMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(bookingResponse);
         } catch (InvalidTireChangeTimeIdException e) {
-            bookingResponse.setId(null);
-            bookingResponse.setUuid(null);
             bookingResponse.setTime(null);
             bookingResponse.setAddress(null);
             bookingResponse.setVehicleType(null);
             bookingResponse.setErrorMessage(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(bookingResponse);
         }catch (Exception e) {
-            bookingResponse.setId(null);
-            bookingResponse.setUuid(null);
             bookingResponse.setTime(null);
             bookingResponse.setAddress(null);
             bookingResponse.setVehicleType(null);

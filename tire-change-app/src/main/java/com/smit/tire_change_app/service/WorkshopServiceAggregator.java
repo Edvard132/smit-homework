@@ -39,12 +39,12 @@ public class WorkshopServiceAggregator {
         }
     }
 
-    public Booking bookTireChangeTime(Integer workshopId, String bookingId, String contactInformation) throws InvalidWorkshopIdException, InvalidTireChangeTimeIdException, NotAvailableTimeException {
+    public Booking bookTireChangeTime(Integer workshopId, String tireChangeTimeId, String contactInformation) throws InvalidWorkshopIdException, InvalidTireChangeTimeIdException, NotAvailableTimeException {
         WorkshopService workshopService = workshopServices.get(workshopId);
         if (workshopService == null){
             throw new InvalidWorkshopIdException("Invalid workshop ID.");
         }
-        return workshopService.bookTireChangeTime(bookingId, contactInformation);
+        return workshopService.bookTireChangeTime(tireChangeTimeId, contactInformation);
     }
 
 }

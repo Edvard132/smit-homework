@@ -2,9 +2,13 @@ package com.smit.tire_change_app.enpoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smit.tire_change_app.exceptions.InvalidDatePeriodException;
+import com.smit.tire_change_app.exceptions.InvalidTireChangeTimeIdException;
 import com.smit.tire_change_app.exceptions.InvalidWorkshopIdException;
+import com.smit.tire_change_app.exceptions.NotAvailableTimeException;
 import com.smit.tire_change_app.model.AvailableTime;
+import com.smit.tire_change_app.model.Booking;
 import com.smit.tire_change_app.responses.AvailableTimesResponse;
+import com.smit.tire_change_app.responses.BookingResponse;
 import com.smit.tire_change_app.service.WorkshopServiceAggregator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +30,7 @@ import java.util.Objects;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -164,7 +169,7 @@ public class WorkshopControllerTest {
     }
 
     @Test
-    public void testInvalidDatePeriod() throws Exception, InvalidDatePeriodException, InvalidWorkshopIdException {
+    public void testGetReqWithInvalidDatePeriod() throws Exception, InvalidDatePeriodException, InvalidWorkshopIdException {
 
         Mockito.when(workshopServiceAggregator.getAvailableTimes(1, "2024-08-20", "2024-08-19"))
                 .thenThrow(new InvalidDatePeriodException("'From' date must not be after 'Until' date."));
@@ -184,9 +189,8 @@ public class WorkshopControllerTest {
         assert Objects.equals(apiResponse.getErrorMessage(), "'From' date must not be after 'Until' date.");
     }
 
-
     @Test
-    public void testInvalidWorkshopId() throws Exception, InvalidDatePeriodException, InvalidWorkshopIdException {
+    public void testGetReqWithInvalidWorkshopId() throws Exception, InvalidDatePeriodException, InvalidWorkshopIdException {
 
         Mockito.when(workshopServiceAggregator.getAvailableTimes(anyInt(), anyString(), anyString()))
                 .thenThrow(new InvalidWorkshopIdException("Invalid workshop ID"));
@@ -204,6 +208,187 @@ public class WorkshopControllerTest {
         AvailableTimesResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), AvailableTimesResponse.class);
         assert apiResponse.getAvailableTimeList() == null;
         assert Objects.equals(apiResponse.getErrorMessage(), "Invalid workshop ID");
+    }
+
+    @Test
+    public void testShouldBookTireChangeTimeLondon() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+        Booking booking = new Booking();
+        booking.setTime("2024-08-26T10:00:00Z");
+        booking.setVehicleType("Car");
+        booking.setAddress("1A Gunton Rd, London");
+
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setTime(booking.getTime());
+        bookingResponse.setVehicleType(booking.getVehicleType());
+        bookingResponse.setAddress(booking.getAddress());
+        bookingResponse.setErrorMessage(null);
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(1, "abcd1234", contactInformation))
+                .thenReturn(booking);
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/1/bookTime/abcd1234")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").value("2024-08-26T10:00:00Z"))
+                .andExpect(jsonPath("$.vehicleType").value("Car"))
+                .andExpect(jsonPath("$.address").value("1A Gunton Rd, London"))
+                .andExpect(jsonPath("$.errorMessage").doesNotExist())
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert Objects.equals(apiResponse.getVehicleType(), "Car");
+        assert apiResponse.getErrorMessage() == null;
+    }
+
+    @Test
+    public void testShouldBookTireChangeTimeManchester() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+        Booking booking = new Booking();
+        booking.setTime("2024-08-26T10:00:00Z");
+        booking.setVehicleType("Car/Truck");
+        booking.setAddress("14 Bury New Rd, Manchester");
+
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setTime(booking.getTime());
+        bookingResponse.setVehicleType(booking.getVehicleType());
+        bookingResponse.setAddress(booking.getAddress());
+        bookingResponse.setErrorMessage(null);
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(2, "abcd1234", contactInformation))
+                .thenReturn(booking);
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/2/bookTime/abcd1234")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").value("2024-08-26T10:00:00Z"))
+                .andExpect(jsonPath("$.vehicleType").value("Car/Truck"))
+                .andExpect(jsonPath("$.address").value("14 Bury New Rd, Manchester"))
+                .andExpect(jsonPath("$.errorMessage").doesNotExist())
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert Objects.equals(apiResponse.getVehicleType(), "Car/Truck");
+        assert apiResponse.getErrorMessage() == null;
+    }
+
+    @Test
+    public void testShouldReturnErrorForInvalidWorkshopIdLondon() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(999, "abcd1234", contactInformation))
+                .thenThrow(new InvalidWorkshopIdException("Invalid workshop ID"));
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/999/bookTime/abcd1234")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").doesNotExist())
+                .andExpect(jsonPath("$.address").doesNotExist())
+                .andExpect(jsonPath("$.vehicleType").doesNotExist())
+                .andExpect(jsonPath("$.errorMessage").value("Invalid workshop ID"))
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert apiResponse.getVehicleType() == null;
+        assert Objects.equals(apiResponse.getErrorMessage(), "Invalid workshop ID");
+    }
+
+    @Test
+    public void testShouldReturnErrorForNotAvailableTimeLondon() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(1, "abcd1234", contactInformation))
+                .thenThrow(new NotAvailableTimeException("Tire change time not available"));
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/1/bookTime/abcd1234")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").doesNotExist())
+                .andExpect(jsonPath("$.address").doesNotExist())
+                .andExpect(jsonPath("$.vehicleType").doesNotExist())
+                .andExpect(jsonPath("$.errorMessage").value("Tire change time not available"))
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert apiResponse.getVehicleType() == null;
+        assert Objects.equals(apiResponse.getErrorMessage(), "Tire change time not available");
+    }
+
+    @Test
+    public void testShouldReturnErrorForInvalidTireChangeTimeIdLondon() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(1, "invalidId", contactInformation))
+                .thenThrow(new InvalidTireChangeTimeIdException("No tire change time with provided ID"));
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/1/bookTime/invalidId")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").doesNotExist())
+                .andExpect(jsonPath("$.address").doesNotExist())
+                .andExpect(jsonPath("$.vehicleType").doesNotExist())
+                .andExpect(jsonPath("$.errorMessage").value("No tire change time with provided ID"))
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert apiResponse.getVehicleType() == null;
+        assert Objects.equals(apiResponse.getErrorMessage(), "No tire change time with provided ID");
+    }
+
+    @Test
+    public void testShouldReturnErrorForNotAvailableTimeManchester() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(2, "1234", contactInformation))
+                .thenThrow(new NotAvailableTimeException("Tire change time not available"));
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/2/bookTime/1234")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").doesNotExist())
+                .andExpect(jsonPath("$.address").doesNotExist())
+                .andExpect(jsonPath("$.vehicleType").doesNotExist())
+                .andExpect(jsonPath("$.errorMessage").value("Tire change time not available"))
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert apiResponse.getVehicleType() == null;
+        assert Objects.equals(apiResponse.getErrorMessage(), "Tire change time not available");
+    }
+
+    @Test
+    public void testShouldReturnErrorForInvalidTireChangeTimeIdManchester() throws Exception, InvalidTireChangeTimeIdException, NotAvailableTimeException, InvalidWorkshopIdException {
+        String contactInformation = "John Doe, johndoe@example.com";
+
+        Mockito.when(workshopServiceAggregator.bookTireChangeTime(2, "invalidId", contactInformation))
+                .thenThrow(new InvalidTireChangeTimeIdException("No tire change time with provided ID"));
+
+        MvcResult result = mockMvc.perform(post("/api/v1/workshops/2/bookTime/invalidId")
+                        .content(contactInformation)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.time").doesNotExist())
+                .andExpect(jsonPath("$.address").doesNotExist())
+                .andExpect(jsonPath("$.vehicleType").doesNotExist())
+                .andExpect(jsonPath("$.errorMessage").value("No tire change time with provided ID"))
+                .andReturn();
+
+        BookingResponse apiResponse = objectMapper.readValue(result.getResponse().getContentAsString(), BookingResponse.class);
+        assert apiResponse.getVehicleType() == null;
+        assert Objects.equals(apiResponse.getErrorMessage(), "No tire change time with provided ID");
     }
 
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import Row from 'react-bootstrap/Row';
-import { formatDate } from '../utils/date';
 
 const Filter = ({ filters, setFilters, errMessage, setErrMessage, dateFilters, setDateFilters }) => {
   const onWorkshopChange = (event) => {
@@ -67,8 +66,8 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage, dateFilters, s
         <div className='d-flex align-items-center'>
           <h4 className='pe-1'>Workshop</h4>
 
-          <Row className=''>
-            <div className='d-flex alig-items-center justify-content-end justify-content-xl-start'>
+          <Row >
+            <div className='d-flex alig-items-center'>
               <input
                 type='checkbox'
                 id='london'
@@ -79,7 +78,7 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage, dateFilters, s
               />
               <label htmlFor='london'>London</label>
             </div>
-            <div className='d-flex alig-items-center justify-content-end justify-content-xl-start'>
+            <div className='d-flex alig-items-center'>
               <input
                 type='checkbox'
                 id='manchester'
