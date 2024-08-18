@@ -32,7 +32,7 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
     try {
       let response;
       if (workshopId === 1) {
-        response = await api.put(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
+        response = await api.post(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
           contactInformation: contactInformation,
         });
       } else if (workshopId === 2) {

@@ -16,8 +16,8 @@ export class DashboardPage {
   public async bookAvailableTime(city: string): Promise<void> {
     await this.page.getByRole('button', { name: 'Next week' }).click();
     await this.page.locator('a').filter({ hasText: this.cityRegex[city] }).last().click({ force: true });
-    await this.page.getByPlaceholder('Name, phone').click();
-    await this.page.getByPlaceholder('Name, phone').fill('Roger, 76782321');
+    const field = this.page.getByPlaceholder('Name, phone');
+    await field.fill('Roger, 76782321');
     await this.page.getByRole('button', { name: 'Confirm service' }).click();
   }
 
@@ -57,6 +57,10 @@ export class DashboardPage {
     await expect(this.page.locator('a').filter({ hasText: this.cityRegex[city] })).toHaveCount(0);
   }
 
+  public async assertCountNonZero(city: string): Promise<void> {
+    await expect(this.page.locator('a').filter({ hasText: this.cityRegex[city] })).not.toHaveCount(0);
+  }
+
   public async gotoNextWeek(): Promise<void> {
     await this.page.getByRole('button', { name: 'Next week' }).click();
   }
@@ -66,23 +70,30 @@ export class DashboardPage {
   }
 
   public async selectNextWeekDays(): Promise<void> {
-    await this.page.getByLabel('Until').fill('2024-08-29');
-    await this.page.waitForTimeout(100);
-    await this.page.getByLabel('From').fill('2024-08-22');
+    await this.page.getByLabel('From').fill('2024-08-28');
     await this.page.waitForTimeout(100);
 
-    await this.page.getByLabel('Until').fill('2024-08-23');
+    await this.page.getByLabel('Until').fill('2024-08-28');
     await this.page.waitForTimeout(300);
   }
 
   public async assertEventsDay(regex: RegExp): Promise<void> {
-    await this.page.locator('a').filter({ hasText: /.*Car(\/Truck)?/ }).last().click({ force: true });
+    await this.page
+      .locator('a')
+      .filter({ hasText: /.*Car(\/Truck)?/ })
+      .last()
+      .click({ force: true });
     const last = await this.page.locator('p').nth(1).textContent();
     expect.soft(last).toMatch(regex);
+    await this.page.waitForTimeout(1000);
     await this.page.getByRole('button', { name: 'Close' }).click();
-    await this.page.locator('a').filter({ hasText: /.*Car(\/Truck)?/ }).first().click({ force: true });
+    await this.page.waitForTimeout(1000);
+    await this.page
+      .locator('a')
+      .filter({ hasText: /.*Car(\/Truck)?/ })
+      .first()
+      .click({ force: true });
     const first = await this.page.locator('p').nth(1).textContent();
     expect.soft(first).toMatch(regex);
   }
-
 }
