@@ -1,8 +1,12 @@
 package com.smit.tire_change_app.service;
 
 import com.smit.tire_change_app.client.ManchesterClient;
+import com.smit.tire_change_app.exceptions.InvalidDatePeriodException;
+import com.smit.tire_change_app.exceptions.InvalidTireChangeTimeIdException;
+import com.smit.tire_change_app.exceptions.NotAvailableTimeException;
 import com.smit.tire_change_app.model.Booking;
 import com.smit.tire_change_app.workshop.AvailTime;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,30 +14,43 @@ import javax.xml.bind.JAXBException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ManchesterService implements WorkshopService<Integer> {
+public class ManchesterService implements WorkshopService {
 
     private final ManchesterClient manchesterClient;
 
     @Override
-    public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException {
+    public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException, InvalidDatePeriodException {
+        verifyInputs(from, until);
         List<AvailTime> availableTimes = manchesterClient.getAvailableTimes(from);
 
         return filterFutureEvents(availableTimes, from, until);
     }
 
     @Override
-    public Booking bookTireChangeTime(Integer id, String contactInformation) {
-        Booking booking =  manchesterClient.bookTireChangeTime(id, contactInformation);
-        booking.setAddress("14 Bury New Rd, Manchester");
-        booking.setVehicleType("Car/Truck");
-        return booking;
+    public Booking bookTireChangeTime(String id, String contactInformation) throws NotAvailableTimeException, InvalidTireChangeTimeIdException {
+        try {
+            Booking booking =  manchesterClient.bookTireChangeTime(Integer.parseInt(id), contactInformation);
+            booking.setAddress("14 Bury New Rd, Manchester");
+            booking.setVehicleType("Car/Truck");
+            return booking;
+        }
+        catch (FeignException e){
+            if (e.status() == 422){
+                throw new NotAvailableTimeException("Tire change time not available");
+            }
+            else if (e.status() == 400){
+                throw new InvalidTireChangeTimeIdException("No tire change time with provided ID");
+            }
+            throw new RuntimeException("Unexpected error occurred while booking tire change time");
+        }
     }
 
-    public List<AvailTime> filterFutureEvents(List<AvailTime> availableTimes, String from, String until) {
+    private List<AvailTime> filterFutureEvents(List<AvailTime> availableTimes, String from, String until) {
 
         ZonedDateTime now = ZonedDateTime.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -52,14 +69,31 @@ public class ManchesterService implements WorkshopService<Integer> {
                     ZonedDateTime eventTime = ZonedDateTime.parse(availableTime.getTime(), dateTimeFormatter);
                     return !eventTime.isBefore(rangeStart) && !eventTime.isAfter(rangeEnd) && availableTime.getAvailable();
                 })
-                .map(manchesterTime -> {
-                    AvailTime time = new AvailTime();
-                    time.setId(manchesterTime.getId());
-                    time.setTime(manchesterTime.getTime());
-                    time.setAddress("14 Bury New Rd, Manchester");
-                    time.setVehicleType("Car/Truck");
-                    return time;
-                })
+                .map(this::mapToAvilTime)
                 .toList();
     }
+
+    private AvailTime mapToAvilTime(AvailTime manchesterTime){
+        AvailTime time = new AvailTime();
+        time.setId(manchesterTime.getId());
+        time.setTime(manchesterTime.getTime());
+        time.setAddress("14 Bury New Rd, Manchester");
+        time.setVehicleType("Car/Truck");
+        return time;
+    }
+
+    private void verifyInputs(String from, String until) throws InvalidDatePeriodException {
+        try {
+            LocalDate fromDate = LocalDate.parse(from);
+            LocalDate untilDate = LocalDate.parse(until);
+
+            if (fromDate.isAfter(untilDate)) {
+                throw new InvalidDatePeriodException("'From' date must not be after 'Until' date.");
+            }
+
+        } catch (DateTimeParseException e) {
+            throw new InvalidDatePeriodException("Invalid date format. Please use the format 'yyyy-MM-dd'.");
+        }
+    }
+
 }
