@@ -1,7 +1,7 @@
 package com.smit.tire_change_app.client;
 
 import com.smit.tire_change_app.model.Booking;
-import com.smit.tire_change_app.workshop.AvailTime;
+import com.smit.tire_change_app.model.AvailableTime;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,7 +11,7 @@ import java.util.List;
 public interface ManchesterClient {
 
     @RequestMapping(method = RequestMethod.GET, value = "/tire-change-times")
-    List<AvailTime> getAvailableTimes(@RequestParam String from);
+    List<AvailableTime> getAvailableTimes(@RequestParam String from);
 
     @PostMapping(value = "/tire-change-times/{id}/booking")
     Booking bookTireChangeTime(@PathVariable Integer id, @RequestBody String contactInformation);

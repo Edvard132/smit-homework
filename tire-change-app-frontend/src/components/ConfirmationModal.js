@@ -49,7 +49,8 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
         vehicleType: data.vehicleType,
       });
     } catch (err) {
-      console.log(err);
+      console.log(err)
+      setErrMessage(err.response.data.message);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +128,7 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
                 value={contactInformation}
                 onChange={(e) => setContactInformation(e.target.value)}
               />
-              {errMessage !== '' && <p className='text-danger ms-2 mb-0'>{errMessage}</p>}
+              {errMessage !== '' && <p className='err text-danger ms-2 mb-0'>{errMessage}</p>}
             </div>
           </>
         )}

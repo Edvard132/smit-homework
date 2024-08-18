@@ -5,7 +5,7 @@ import com.smit.tire_change_app.exceptions.InvalidDatePeriodException;
 import com.smit.tire_change_app.exceptions.InvalidTireChangeTimeIdException;
 import com.smit.tire_change_app.exceptions.NotAvailableTimeException;
 import com.smit.tire_change_app.model.Booking;
-import com.smit.tire_change_app.workshop.AvailTime;
+import com.smit.tire_change_app.model.AvailableTime;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,9 +24,9 @@ public class ManchesterService implements WorkshopService {
     private final ManchesterClient manchesterClient;
 
     @Override
-    public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException, InvalidDatePeriodException {
+    public List<AvailableTime> getAvailableTimes(String from, String until) throws JAXBException, InvalidDatePeriodException {
         verifyInputs(from, until);
-        List<AvailTime> availableTimes = manchesterClient.getAvailableTimes(from);
+        List<AvailableTime> availableTimes = manchesterClient.getAvailableTimes(from);
 
         return filterFutureEvents(availableTimes, from, until);
     }
@@ -50,7 +50,7 @@ public class ManchesterService implements WorkshopService {
         }
     }
 
-    private List<AvailTime> filterFutureEvents(List<AvailTime> availableTimes, String from, String until) {
+    private List<AvailableTime> filterFutureEvents(List<AvailableTime> availableTimes, String from, String until) {
 
         ZonedDateTime now = ZonedDateTime.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -73,8 +73,8 @@ public class ManchesterService implements WorkshopService {
                 .toList();
     }
 
-    private AvailTime mapToAvilTime(AvailTime manchesterTime){
-        AvailTime time = new AvailTime();
+    private AvailableTime mapToAvilTime(AvailableTime manchesterTime){
+        AvailableTime time = new AvailableTime();
         time.setId(manchesterTime.getId());
         time.setTime(manchesterTime.getTime());
         time.setAddress("14 Bury New Rd, Manchester");

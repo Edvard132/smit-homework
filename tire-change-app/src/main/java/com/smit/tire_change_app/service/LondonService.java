@@ -7,14 +7,13 @@ import com.smit.tire_change_app.client.LondonClient;
 import com.smit.tire_change_app.exceptions.InvalidDatePeriodException;
 import com.smit.tire_change_app.exceptions.InvalidTireChangeTimeIdException;
 import com.smit.tire_change_app.exceptions.NotAvailableTimeException;
-import com.smit.tire_change_app.model.AvailableTime;
+import com.smit.tire_change_app.model.LondonTime;
 import com.smit.tire_change_app.model.Booking;
 import com.smit.tire_change_app.model.ContactInformation;
-import com.smit.tire_change_app.responses.LondonResponse;
-import com.smit.tire_change_app.workshop.AvailTime;
+import com.smit.tire_change_app.model.LondonAvailableTimes;
+import com.smit.tire_change_app.model.AvailableTime;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBContext;
@@ -35,15 +34,14 @@ public class LondonService implements WorkshopService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException, InvalidDatePeriodException {
+    public List<AvailableTime> getAvailableTimes(String from, String until) throws JAXBException, InvalidDatePeriodException {
         verifyInputs(from, until);
 
         String untilDateIncluded = untilDateInclusive(until);
         String availableTimesList = londonClient.getAvailableTimes(from, untilDateIncluded);
-        LondonResponse response = parseLondonResponse(availableTimesList);
+        LondonAvailableTimes response = parseLondonResponse(availableTimesList);
         return filterAndMapFutureEvents(response);
     }
-
 
     @Override
     public Booking bookTireChangeTime(String uuid, String contactInformation) throws NotAvailableTimeException, InvalidTireChangeTimeIdException {
@@ -69,28 +67,28 @@ public class LondonService implements WorkshopService {
         }
     }
 
-    private LondonResponse parseLondonResponse(String availableTimeList) throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance(LondonResponse.class);
+    private LondonAvailableTimes parseLondonResponse(String availableTimeList) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(LondonAvailableTimes.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        return (LondonResponse) unmarshaller.unmarshal(new StringReader(availableTimeList));
+        return (LondonAvailableTimes) unmarshaller.unmarshal(new StringReader(availableTimeList));
     }
 
-    private List<AvailTime> filterAndMapFutureEvents(LondonResponse response) {
-        if (response.getAvailableTimeList() == null || response.getAvailableTimeList().isEmpty()) {
+    private List<AvailableTime> filterAndMapFutureEvents(LondonAvailableTimes response) {
+        if (response.getLondonTimeList() == null || response.getLondonTimeList().isEmpty()) {
             return new ArrayList<>();
         }
 
         ZonedDateTime now = ZonedDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
-        return response.getAvailableTimeList().stream()
-                .filter(availableTime -> ZonedDateTime.parse(availableTime.getTime(), formatter).isAfter(now))
+        return response.getLondonTimeList().stream()
+                .filter(londonTime -> ZonedDateTime.parse(londonTime.getTime(), formatter).isAfter(now))
                 .map(this::mapToAvailTime)
                 .toList();
     }
 
-    private AvailTime mapToAvailTime(AvailableTime londonTime) {
-        AvailTime time = new AvailTime();
+    private AvailableTime mapToAvailTime(LondonTime londonTime) {
+        AvailableTime time = new AvailableTime();
         time.setUuid(londonTime.getUuid());
         time.setTime(londonTime.getTime());
         time.setAddress("1A Gunton Rd, London");

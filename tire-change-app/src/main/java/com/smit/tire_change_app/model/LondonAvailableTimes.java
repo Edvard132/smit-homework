@@ -1,6 +1,5 @@
-package com.smit.tire_change_app.responses;
+package com.smit.tire_change_app.model;
 
-import com.smit.tire_change_app.model.AvailableTime;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -13,13 +12,13 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @XmlRootElement(name = "tireChangeTimesResponse")
-public class LondonResponse {
+public class LondonAvailableTimes {
 
-    private List<AvailableTime> availableTimeList;
+    private List<LondonTime> londonTimeList;
 
     @XmlElement(name = "availableTime")
-    public List<AvailableTime> getAvailableTimeList() {
-        return availableTimeList;
+    public List<LondonTime> getLondonTimeList() {
+        return londonTimeList;
     }
 
 }

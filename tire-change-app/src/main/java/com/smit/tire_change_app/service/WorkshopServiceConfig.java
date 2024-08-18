@@ -13,11 +13,11 @@ import java.util.Map;
 @Configuration
 public class WorkshopServiceConfig {
     @Bean
-    public Map<Integer, WorkshopService> workshopServices(LondonService londonService, ManchesterService manchesterWorkshopServicev2) {
+    public Map<Integer, WorkshopService> workshopServices(LondonService londonService, ManchesterService manchesterWorkshopService) {
         Map<Integer, WorkshopService> workshopServices = new HashMap<>();
 
         workshopServices.put(1, londonService);
-        workshopServices.put(2, manchesterWorkshopServicev2);
+        workshopServices.put(2, manchesterWorkshopService);
 
         return workshopServices;
     }

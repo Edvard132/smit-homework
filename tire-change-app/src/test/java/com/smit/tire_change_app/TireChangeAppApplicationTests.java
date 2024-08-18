@@ -2,14 +2,11 @@ package com.smit.tire_change_app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
-@Import(TestcontainersConfiguration.class)
 @SpringBootTest
-class TireChangeAppApplicationTests {
+public class TireChangeAppApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+    }
 }
