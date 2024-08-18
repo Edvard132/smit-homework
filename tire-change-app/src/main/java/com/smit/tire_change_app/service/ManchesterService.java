@@ -45,7 +45,7 @@ public class ManchesterService implements WorkshopService<Integer> {
         ZonedDateTime rangeStart = fromDate.isBefore(now.toLocalDate()) || fromDate.isEqual(now.toLocalDate())
                 ? now
                 : fromDate.atStartOfDay(now.getZone());
-        ZonedDateTime rangeEnd = untilDate.atTime(0, 0, 0).atZone(now.getZone());
+        ZonedDateTime rangeEnd = untilDate.atTime(23, 59, 59).atZone(now.getZone());
 
         return availableTimes.stream()
                 .filter(availableTime -> {

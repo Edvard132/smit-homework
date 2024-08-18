@@ -42,7 +42,7 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage, dateFilters, s
 
     if (id === 'from') {
       if (value > dateFilters.until) {
-        setErrMessage('"From" date cannot be after "Until" date');
+        setErrMessage('"From" date cannot be after or equal to "Until" date');
         updatedFilters.from = value;
       } else {
         setErrMessage('');
@@ -50,7 +50,7 @@ const Filter = ({ filters, setFilters, errMessage, setErrMessage, dateFilters, s
       }
     } else if (id === 'until') {
       if (value < dateFilters.from) {
-        setErrMessage('"Until" date cannot be before "From" date');
+        setErrMessage('"Until" date cannot be before or equal to "From" date');
         updatedFilters.until = value;
       } else {
         setErrMessage('');

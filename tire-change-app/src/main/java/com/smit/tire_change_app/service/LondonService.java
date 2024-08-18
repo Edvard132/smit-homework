@@ -32,7 +32,8 @@ public class LondonService implements WorkshopService<String> {
 
     @Override
     public List<AvailTime> getAvailableTimes(String from, String until) throws JAXBException {
-        String availableTimesList = londonClient.getAvailableTimes(from, until);
+        String untilDateIncluded = untilDateInclusive(until);
+        String availableTimesList = londonClient.getAvailableTimes(from, untilDateIncluded);
         return filterFutureEvents(availableTimesList);
     }
 
@@ -76,7 +77,13 @@ public class LondonService implements WorkshopService<String> {
         }
     }
 
-    public void verifyInputs(String from, String until) throws InvalidDatePeriodException {
+    private String untilDateInclusive(String dateString){
+        LocalDate date = LocalDate.parse(dateString);
+        LocalDate incrementedDate = date.plusDays(1);
+        return incrementedDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
+    private void verifyInputs(String from, String until) throws InvalidDatePeriodException {
         try {
             LocalDate fromDate = LocalDate.parse(from);
             LocalDate untilDate = LocalDate.parse(until);

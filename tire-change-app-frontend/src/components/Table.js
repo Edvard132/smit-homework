@@ -10,7 +10,6 @@ const TableComponent = ({ events, getAllAvailableTimes }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const eventClickAction = (info) => {
-    console.log('INFO', info);
     setSelectedEvent(info.event);
     setModalShow(true);
   };
@@ -21,7 +20,6 @@ const TableComponent = ({ events, getAllAvailableTimes }) => {
         plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
         initialView='timeGridWeek'
         events={events}
-        eventBackgroundColor='#378006'
         timeZone='UTC'
         eventClick={eventClickAction}
         headerToolbar={{ left: '', center: 'title', right: 'prev,next timeGridDay,timeGridWeek,dayGridMonth today' }}

@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row';
 import Filter from '../components/Filter';
 import api from '../api/axiosConfig';
 import { formatDate } from '../utils/date';
-import { getDateWeekAhead } from '../utils/date';
+import { getDate2WeekAhead } from '../utils/date';
 import TableComponent from '../components/Table';
 import useDebounce from '../hooks/useDebounce';
 
@@ -20,13 +20,15 @@ const Dashboard = () => {
   });
   const [dateFilters, setDateFilters] = useState({
     from: formatDate(new Date()),
-    until: getDateWeekAhead(),
+    until: getDate2WeekAhead(),
   });
 
   const debouncedFilters = useDebounce(dateFilters, 100);
 
   const getAvailableTimes = async () => {
-    
+    if (errMessage !== '') {
+      return;
+    }
     try {
       const response = await api.get(
         `/api/v1/workshops/3/availableTimes?from=${dateFilters.from}&until=${dateFilters.until}`
@@ -53,7 +55,9 @@ const Dashboard = () => {
 
   const filterEvents = () => {
     const filteredEventsss = events.filter((event) => {
-      return filters.vehicleType.includes(event.title) && filters.workshop.includes(event.address);
+      const isVehicleTypeMatched = filters.vehicleType.some((type) => event.title.includes(type));
+      const isWorkshopMatched = filters.workshop.includes(event.address);
+      return isVehicleTypeMatched && isWorkshopMatched;
     });
     setFilteredEvents(filteredEventsss);
   };
