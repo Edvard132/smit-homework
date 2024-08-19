@@ -28,20 +28,12 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
 
   const bookServiceCity = async (workshopId, id) => {
     setIsLoading(true);
-    console.log('workshopId ', workshopId, ' id ', id);
     try {
-      let response;
-      if (workshopId === 1) {
-        response = await api.post(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
-          contactInformation: contactInformation,
-        });
-      } else if (workshopId === 2) {
-        response = await api.post(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
-          contactInformation: contactInformation,
-        });
-      }
+
+      const response = await api.post(`/api/v1/workshops/${workshopId}/bookTime/${id}`, {
+        contactInformation: contactInformation,
+      });
       const data = await response.data;
-      console.log('DATA FROM booking', data);
 
       setResponse({
         time: getReadableDate(data.time),
@@ -49,7 +41,6 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
         vehicleType: data.vehicleType,
       });
     } catch (err) {
-      console.log(err)
       setErrMessage(err.response.data.message);
     } finally {
       setIsLoading(false);
@@ -68,7 +59,7 @@ const ConfirmationModal = ({ modalShow, setModalShow, event, getAllAvailableTime
         await bookServiceCity(2, event._def.publicId);
       }
     } catch (err) {
-      console.log('errur', err);
+      console.log(setErrMessage(err.response.data.message));
     } finally {
       await getAllAvailableTimes();
     }
